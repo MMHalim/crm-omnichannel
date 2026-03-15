@@ -84,4 +84,15 @@ basic_auth="$(
   printf "x-access-token:%s" "${GITHUB_TOKEN}" | base64
 )"
 
+if git -c http.extraHeader="AUTHORIZATION: basic ${basic_auth}" fetch origin main >/dev/null 2>&1; then
+  if git show-ref --verify --quiet refs/remotes/origin/main; then
+    if ! git merge --allow-unrelated-histories --no-edit origin/main >/dev/null 2>&1; then
+      echo "Remote 'main' has commits that conflict with your local history."
+      echo "Resolve the merge conflicts, commit, then rerun:"
+      echo "  git push -u origin main"
+      exit 1
+    fi
+  fi
+fi
+
 git -c http.extraHeader="AUTHORIZATION: basic ${basic_auth}" push -u origin main
